@@ -2,11 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def mscatter(x,y,ax=None, m=None, **kw):
+def mscatter(x, y, ax=None, m=None, **kw):
     import matplotlib.markers as mmarkers
     if not ax: ax=plt.gca()
-    sc = ax.scatter(x,y,**kw)
-    if (m is not None) and (len(m)==len(x)):
+    sc = ax.scatter(x, y, **kw)
+    if (m is not None) and (len(m) == len(x)):
         paths = []
         for marker in m:
             if isinstance(marker, mmarkers.MarkerStyle):
