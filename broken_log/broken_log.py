@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import random
 
 from skimage.transform import downscale_local_mean
 from sklearn.cluster import KMeans
+from sklearn.mixture import GaussianMixture
 from skimage import io, color
 from typing import Tuple
 
@@ -22,6 +22,8 @@ class ColorPallete:
         image_flattened = image_lab.reshape(-1, image_lab.shape[-1])
         kmeans_lab = KMeans(n_clusters=self.n_clusters, random_state=1).fit(image_flattened)
         self.clustered_colors_lab = kmeans_lab.cluster_centers_
+        # gaussian_mixture_lab = GaussianMixture(n_components=self.n_clusters, random_state=1).fit(image_flattened)
+        # self.clustered_colors_lab = gaussian_mixture_lab.means_
         if remove_white_and_black:
             self.clustered_colors_lab = self.clustered_colors_lab[(self.clustered_colors_lab[:, 0] > 10) &
                                                                   (self.clustered_colors_lab[:, 0] < 95)]
@@ -84,20 +86,26 @@ class CreateBrokenGraph:
 
     def plot_figure(self, n_lines=3, **kwargs):
         rgb_colors = self.color_pallete.extract_colors(**kwargs)
+        background_color = self.background_color * np.random.uniform(0.9, 1.1, 3)
+        background_color[background_color > 1.0] = 1.0
+        plt.rcParams["figure.facecolor"] = background_color
 
-        plt.rcParams["figure.facecolor"] = self.background_color
         fig, axes = plt.subplots(self.num_splits, 1, sharex='all', frameon=True)
         fig.tight_layout()
         fig.subplots_adjust(hspace=-0.05)  # adjust space between axes
 
         for _ in range(n_lines):
-            alpha = 1.0
+            alpha_mod = 1.0
             for index, ax in enumerate(axes):
                 pts = self.generate_data()
-                color = np.append(rgb_colors[index], alpha)
-                linewidth = np.random.exponential(2)
+                linewidth = np.min([np.random.exponential(2), 5])
+                alpha = linewidth / 5 * alpha_mod
+                rgb_random_factors = np.random.uniform(0.9, 1.1, 3)
+                plot_colors = rgb_colors[index] * rgb_random_factors
+                plot_colors[plot_colors > 1.0] = 1.0
+                color = np.append(plot_colors, alpha)
                 ax.semilogy(pts, color=color, alpha=alpha, linewidth=linewidth)
-                alpha *= 0.9
+                alpha_mod *= 0.9
 
         max = 2.0 * np.max(self.pts)
         min = np.min(self.pts)
@@ -127,7 +135,7 @@ class CreateBrokenGraph:
 def run_1():
     url = 'https://i.pinimg.com/originals/a2/75/0c/a2750c2051f6c5eda339bf314d1075e4.jpg'
     # url = 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Blue-and-Yellow-Macaw.jpg'
-    color_pallete = ColorPallete(url, n_clusters=2)
+    color_pallete = ColorPallete(url, n_clusters=5)
     broken_graph = CreateBrokenGraph(color_pallete)
     for _ in range(5):
         broken_graph.plot_figure(n_lines=10, remove_white_and_black=False)
