@@ -76,7 +76,10 @@ class CreateBrokenGraph:
         pass
 
     def generate_data(self, sample_length=int(1e4)):
-        pts = np.cumsum(np.random.uniform(-1000, 1005, sample_length))
+        lower_step = np.random.uniform(-1050, -950)
+        upper_step = np.random.uniform(1000, 1050)
+
+        pts = np.cumsum(np.random.uniform(lower_step, upper_step, sample_length))
         perturb = np.random.exponential(1000, sample_length)
         pts += perturb
         pts += np.abs(np.min(pts))
@@ -135,10 +138,12 @@ class CreateBrokenGraph:
 def run_1():
     url = 'https://i.pinimg.com/originals/a2/75/0c/a2750c2051f6c5eda339bf314d1075e4.jpg'
     # url = 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Blue-and-Yellow-Macaw.jpg'
-    color_pallete = ColorPallete(url, n_clusters=5)
+    color_pallete = ColorPallete(url, n_clusters=2)
     broken_graph = CreateBrokenGraph(color_pallete)
-    for _ in range(5):
-        broken_graph.plot_figure(n_lines=10, remove_white_and_black=False)
+    for i in range(5):
+        broken_graph.plot_figure(n_lines=50, remove_white_and_black=False)
+        plt.savefig('ice_table_variation_' + str(i))
+        plt.close()
 
 
 if __name__ == '__main__':
