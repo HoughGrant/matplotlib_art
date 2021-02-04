@@ -136,8 +136,8 @@ class CreateBrokenGraph:
 
 
 def run_1():
-    url = 'https://i.pinimg.com/originals/a2/75/0c/a2750c2051f6c5eda339bf314d1075e4.jpg'
-    # url = 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Blue-and-Yellow-Macaw.jpg'
+    # url = 'https://i.pinimg.com/originals/a2/75/0c/a2750c2051f6c5eda339bf314d1075e4.jpg'
+    url = 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Blue-and-Yellow-Macaw.jpg'
     color_pallete = ColorPallete(url, n_clusters=2)
     broken_graph = CreateBrokenGraph(color_pallete)
     for i in range(5):
