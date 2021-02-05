@@ -142,9 +142,31 @@ def run_1():
     broken_graph = CreateBrokenGraph(color_pallete)
     for i in range(5):
         broken_graph.plot_figure(n_lines=50, remove_white_and_black=False)
-        plt.savefig('ice_table_variation_' + str(i))
-        plt.close()
+        # plt.savefig('ice_table_variation_' + str(i))
+        # plt.close()
+
+
+def run_2():
+    # url = 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Blue-and-Yellow-Macaw.jpg'
+    url = 'https://i.pinimg.com/originals/a2/75/0c/a2750c2051f6c5eda339bf314d1075e4.jpg'
+    color_pallete = ColorPallete(url, n_clusters=10)
+    broken_graph = CreateBrokenGraph(color_pallete)
+
+    def generate_data_new(self, sample_length=int(1e4)):
+        pts = np.sin(np.arange(sample_length))
+        perturb = np.random.exponential(1000, sample_length)
+        pts += perturb
+        pts += np.abs(np.min(pts))
+        if self.pts is None:
+            self.pts = pts
+        return pts
+
+    import types
+
+    broken_graph.generate_data = types.MethodType(generate_data_new, broken_graph)
+    broken_graph.plot_figure(n_lines=5, remove_white_and_black=False)
 
 
 if __name__ == '__main__':
-    run_1()
+    # run_1()
+    run_2()
