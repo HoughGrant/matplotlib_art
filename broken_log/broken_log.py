@@ -173,7 +173,10 @@ def waterfeature():
         x_pts_end = np.random.uniform(np.pi, np.pi)
         x_pts = np.linspace(x_pts_start, x_pts_end, sample_length)  # / (2 * np.pi * sample_length)
         sin_freq = np.random.randint(1, 3)
-        sin_amp = np.random.choice([100, 200, 300, 400, 500])
+        # sin_amp_probs = [0.5, 0.1, 0.1, 0.2, 0.3]
+        sin_amp = np.random.choice([100, 200, 300, 400, 500],
+                                   # p=sin_amp_probs
+                                   )
         y_pts = sin_amp * np.sin(x_pts * (2 * sin_freq - 1) * np.pi)
         perturb = np.random.exponential(10, sample_length) * (-1) ** np.random.randint(0, 2)
         y_pts += perturb
@@ -244,8 +247,89 @@ def waterfeature():
     broken_graph.plot_figure = types.MethodType(plot_figure_new, broken_graph)
     broken_graph.plot_figure(n_lines=50, remove_white_and_black=False)
 
+def frogsymmetric():
+    def generate_data_new(self, sample_length=int(1e4)):
+        x_pts_start = np.random.uniform(0., 0.)
+        x_pts_end = np.random.uniform(np.pi, np.pi)
+        x_pts = np.linspace(x_pts_start, x_pts_end, sample_length)  # / (2 * np.pi * sample_length)
+        sin_freq = np.random.randint(1, 3)
+        sin_amp_probs = [0.05, 0.05, 0.1, 0.5, 0.3]
+        sin_amp = np.random.choice([100, 200, 300, 400, 500],
+                                   p=sin_amp_probs
+                                   )
+        y_pts = sin_amp * np.sin(x_pts * (2 * sin_freq - 1) * np.pi)
+        perturb = np.random.exponential(10, sample_length) * (-1) ** np.random.randint(0, 2)
+        y_pts += perturb
+        y_pts += np.abs(np.min(y_pts))
+        if self.y_pts is None:
+            self.y_pts = y_pts
+        if self.x_pts is None:
+            self.x_pts = x_pts
+        return x_pts, y_pts
+
+    def plot_figure_new(self, n_lines=3, **kwargs):
+        rgb_colors = self.color_pallete.extract_colors(**kwargs)
+        background_color = self.background_color * np.random.uniform(0.9, 1.1, 3)
+        background_color[background_color > 1.0] = 1.0
+        plt.rcParams["figure.facecolor"] = background_color
+
+        fig, axes = plt.subplots(self.num_splits, 1, sharex='all', frameon=True)
+        fig.tight_layout()
+        fig.subplots_adjust(hspace=-0.05)  # adjust space between axes
+
+        for _ in range(n_lines):
+            top_linewidth = 1.5
+            for index, ax in enumerate(axes):
+                alpha_mod = 0.99
+                x_pts, y_pts = self.generate_data()
+                linewidth = np.min([np.random.exponential(0.5), top_linewidth])
+                alpha = linewidth / top_linewidth * alpha_mod
+                rgb_random_factors = np.random.uniform(0.85, 1.15, 3)
+                plot_colors = rgb_colors[index] * rgb_random_factors
+                plot_colors[plot_colors > 1.0] = 1.0
+                color = np.append(plot_colors, alpha)
+                ax.semilogy(x_pts, y_pts, color=color, alpha=alpha, linewidth=linewidth)
+                alpha_mod *= 0.95
+
+        max = 1.0 * np.max(self.y_pts)
+        min = np.min(self.y_pts)
+        diff = (max - min) / self.num_splits
+        min *= 0.9
+        for ax in axes[:-1]:
+            ax.set_ylim(max - diff, max)
+            max *= np.random.uniform(0.5, 1.1)
+        axes[-1].set_ylim(min, max - diff)
+
+        axes[0].spines['bottom'].set_visible(False)
+        for ax in axes[1:-2]:
+            ax.spines['bottom'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+
+        axes[-1].spines['top'].set_visible(False)
+        axes[0].xaxis.tick_top()
+        axes[0].tick_params(labeltop=False)
+        axes[-1].xaxis.tick_bottom()
+
+        for ax in axes:
+            ax.axis('off')
+
+        plt.show()
+
+    import types
+
+    url = 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Blue-and-Yellow-Macaw.jpg'
+    # url = 'https://i.pinimg.com/originals/a2/75/0c/a2750c2051f6c5eda339bf314d1075e4.jpg'
+    color_pallete = ColorPallete(url, n_clusters=4)
+    broken_graph = CreateBrokenGraph(color_pallete)
+    broken_graph.y_pts = None
+    broken_graph.x_pts = None
+    broken_graph.generate_data = types.MethodType(generate_data_new, broken_graph)
+    broken_graph.plot_figure = types.MethodType(plot_figure_new, broken_graph)
+    broken_graph.plot_figure(n_lines=5, remove_white_and_black=False)
+
 
 if __name__ == '__main__':
     # run_1()
     # run_2()
     waterfeature()
+    frogsymmetric()
