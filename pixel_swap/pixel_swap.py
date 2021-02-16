@@ -1,14 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+import randomcolor
 from scipy.ndimage import correlate
-from skimage.segmentation import random_walker
-from skimage.filters import gaussian, gabor_kernel
-from skimage.transform import rescale, downscale_local_mean
 from skimage import io, color
+from skimage.filters import gaussian
+from skimage.filters import sato, hessian
+from skimage.morphology import erosion
+from skimage.segmentation import random_walker
+from skimage.transform import rescale
 from sklearn.cluster import KMeans
 
-import randomcolor
 
 class ColorPallete:
     def __init__(self, url, n_clusters=8):
@@ -262,7 +263,7 @@ def noisy_mountains_2():
 
     size_x = 20
     size_y = 20
-    upscale_factor = 5
+    upscale_factor = 10
     n_labels = 4
     sigma = 1
     buffer = 0.0005
@@ -324,24 +325,40 @@ def noisy_mountains_2():
     plt.imshow(image_rgb)
     plt.show()
 
-    filter = np.array(1 * [(((-5.0, -10.0, -5.0),
-                             (0.0, 0.0, 0.0),
-                             (2.0, 10.0, 2.0)))])
 
-    filter /= np.sum(np.abs(filter))
-    filtered_img = correlate(image_rgb, filter)
+    # filtered_img = prewitt_v(color.rgb2hsv(image_rgb)[:, :, 0])
+    # filtered_img = meijering(color.rgb2hsv(image_rgb)[:, :, 0])
+    filtered_img = sato(color.rgb2hsv(image_rgb)[:, :, 0])
+    # filtered_img = frangi(color.rgb2hsv(image_rgb)[:, :, 0])
 
-    filtered_img_binary = np.average(filtered_img[:], axis=2)
     plt.figure()
-    filtered_img_binary = (filtered_img_binary + np.abs(np.min(filtered_img_binary))) / np.max(
-        filtered_img_binary + np.abs(np.min(filtered_img_binary)))
-    filtered_img_binary *= 2
-    plt.imshow(filtered_img_binary, cmap='gray')
+    plt.imshow(filtered_img)
+    plt.show()
+
+    filtered_img = filtered_img
+    filtered_img = (filtered_img + np.abs(np.min(filtered_img))) / np.max(
+        filtered_img + np.abs(np.min(filtered_img)))
+    filtered_img += 0.8
+
+    plt.figure()
+    plt.imshow(filtered_img, cmap='gray')
     plt.colorbar()
     plt.show()
 
+    num_erosions = 5
+    eroded_image = hessian(color.rgb2hsv(image_rgb)[:, :, 0])
+    eroded_aug = np.zeros_like(eroded_image)
+    for n in range(num_erosions):
+        eroded_aug += 1 * eroded_image
+        eroded_image = erosion(eroded_image)
+
+    plt.figure()
+    plt.imshow(image_rgb)
+    plt.show()
+
     image_hsv = color.rgb2hsv(image_rgb)
-    image_hsv[:, :, 2] *= filtered_img_binary
+    image_hsv[:, :, 2] *= filtered_img
+    image_hsv[:, :, 2] *= 1 - (0.3 * eroded_aug / np.max(eroded_aug))
     image_rgb_shadow_aug = color.hsv2rgb(image_hsv)
     plt.figure()
     plt.imshow(image_rgb_shadow_aug)
@@ -350,4 +367,5 @@ def noisy_mountains_2():
 
 if __name__ == '__main__':
     # naive_approach()
-    strange_noise()
+    # strange_noise()
+    noisy_mountains_2()
