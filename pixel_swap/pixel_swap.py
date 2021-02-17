@@ -3,12 +3,12 @@ import numpy as np
 import randomcolor
 from scipy.ndimage import correlate
 from skimage import io, color
-from skimage.filters import gaussian
-from skimage.filters import sato, hessian
+from skimage.filters import sato, hessian, gaussian, frangi
 from skimage.morphology import erosion
 from skimage.segmentation import random_walker
 from skimage.transform import rescale
 from sklearn.cluster import KMeans
+from matplotlib.gridspec import GridSpec
 
 
 class ColorPallete:
@@ -368,6 +368,7 @@ def noisy_mountains_2():
 def very_abstract():
     from skimage.filters import frangi
 
+    debug = False
     rand_color = randomcolor.RandomColor()
 
     size_x = 10
@@ -376,7 +377,7 @@ def very_abstract():
     n_labels = 4
     sigma = 1
     buffer = 0.005
-    hsv_index = 2
+    hsv_index = 1
     segment_spacing = [100, 10]
     image_rgb = np.random.uniform(0, 1, (size_x, size_y, 3))
     labels = np.random.randint(n_labels + 1, size=(size_x, size_y)) * np.random.randint(0, 2, size=(size_x, size_y))
@@ -390,7 +391,7 @@ def very_abstract():
                              spacing=segment_spacing,
                              )
 
-    all_colors = np.array(rand_color.generate(hue="red",
+    all_colors = np.array(rand_color.generate(hue="blue",
                                               # luminosity='bright',
                                               count=n_labels,
                                               format_='Array_rgb')) / 256.
@@ -405,10 +406,10 @@ def very_abstract():
     image_rgb = rescale(image_rgb, upscale_factor, anti_aliasing=False, multichannel=True)
     image_rgb = gaussian(image_rgb, sigma=sigma, multichannel=True)
     image_hsv = color.rgb2hsv(image_rgb)
-
-    plt.figure()
-    plt.imshow(image_rgb)
-    plt.show()
+    if debug:
+        plt.figure()
+        plt.imshow(image_rgb)
+        plt.show()
 
     for pix_frac in [0.9]:
         total_pixels_switched = int(image_rgb.shape[0] * image_rgb.shape[0] * pix_frac)
@@ -428,14 +429,16 @@ def very_abstract():
             image_rgb[x[idx], y[idx]] = orig_rgb
             image_rgb[rand_x, rand_y] = update_rgb
 
+        if debug:
+            plt.figure()
+            plt.title(pix_frac)
+            plt.imshow(image_rgb)
+            plt.show()
+
+    if debug:
         plt.figure()
-        plt.title(pix_frac)
         plt.imshow(image_rgb)
         plt.show()
-
-    plt.figure()
-    plt.imshow(image_rgb)
-    plt.show()
 
     # filtered_img = prewitt_v(color.rgb2hsv(image_rgb)[:, :, 0])
     # filtered_img = meijering(color.rgb2hsv(image_rgb)[:, :, 0])
@@ -463,10 +466,11 @@ def very_abstract():
         filtered_img + np.abs(np.min(filtered_img)))
     filtered_img += 0.8
 
-    plt.figure()
-    plt.imshow(filtered_img, cmap='gray')
-    plt.colorbar()
-    plt.show()
+    if debug:
+        plt.figure()
+        plt.imshow(filtered_img, cmap='gray')
+        plt.colorbar()
+        plt.show()
 
     num_erosions = 5
     eroded_image = hessian(color.rgb2hsv(image_rgb)[:, :, 0])
@@ -475,9 +479,10 @@ def very_abstract():
         eroded_aug += 1 * eroded_image
         eroded_image = erosion(eroded_image)
 
-    plt.figure()
-    plt.imshow(image_rgb)
-    plt.show()
+    if debug:
+        plt.figure()
+        plt.imshow(image_rgb)
+        plt.show()
 
     image_hsv = color.rgb2hsv(image_rgb)
     image_hsv[:, :, 2] *= filtered_img
@@ -485,6 +490,160 @@ def very_abstract():
     image_rgb_shadow_aug = color.hsv2rgb(image_hsv)
     plt.figure()
     plt.imshow(image_rgb_shadow_aug)
+    plt.show()
+
+def mountains_series():
+
+    def format_axes(fig):
+        for i, ax in enumerate(fig.axes):
+            ax.tick_params(labelbottom=False, labelleft=False,
+                           bottom=False, left=False)
+
+    fig = plt.figure(constrained_layout=False, frameon=False)
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.set_facecolor((0.88, 0.87, 0.9))
+
+    gs = GridSpec(3, 3, figure=fig, wspace=0, hspace=0.05)
+    axes = []
+    axes.append(fig.add_subplot(gs[0, :]))
+    axes.append(fig.add_subplot(gs[1, :-1]))
+    axes.append(fig.add_subplot(gs[1:, -1]))
+    axes.append(fig.add_subplot(gs[-1, 0]))
+    axes.append(fig.add_subplot(gs[-1, -2]))
+    # sizes_y = [15, 10, 5, 5, 5]
+    # sizes_x = [5, 5, 10, 5, 5]
+
+    sizes_y = [20, 12, 5, 5, 5]
+    sizes_x = [5, 5, 10, 5, 5]
+
+    for i in range(5):
+        debug = False
+        rand_color = randomcolor.RandomColor()
+
+        size_x = sizes_x[i]
+        size_y = sizes_y[i]
+        upscale_factor = 10
+        n_labels = 5
+        sigma = 1
+        buffer = 0.005
+        hsv_index = 1
+        segment_spacing = [10, 10]
+        image_rgb = np.random.uniform(0, 1, (size_x, size_y, 3))
+        labels = np.random.randint(n_labels + 1, size=(size_x, size_y)) * np.random.randint(0, 2, size=(size_x, size_y))
+
+        # segment random image
+        segments = random_walker(image_rgb,
+                                 labels,
+                                 multichannel=True,
+                                 beta=250,
+                                 copy=False,
+                                 spacing=segment_spacing,
+                                 )
+
+        all_colors = np.array(rand_color.generate(hue="purple",
+                                                  # luminosity='bright',
+                                                  count=n_labels,
+                                                  format_='Array_rgb')) / 256.
+
+        for color_index in np.unique(segments):
+            color_hsv = color.rgb2hsv(all_colors[color_index - 1])
+            # color_hsv[2] = 0.6 + (color_index - 1) * 0.4 / n_labels
+            color_rgb = color.hsv2rgb(color_hsv)
+            image_rgb[segments == color_index] = color_rgb
+
+        # transform segmented image so it is large, preserving blobs, and blurry
+        image_rgb = rescale(image_rgb, upscale_factor, anti_aliasing=False, multichannel=True)
+        image_rgb = gaussian(image_rgb, sigma=sigma, multichannel=True)
+        image_hsv = color.rgb2hsv(image_rgb)
+        if debug:
+            plt.figure()
+            plt.imshow(image_rgb)
+            plt.show()
+
+        for pix_frac in [0.9]:
+            total_pixels_switched = int(image_rgb.shape[0] * image_rgb.shape[0] * pix_frac)
+            print(total_pixels_switched)
+            for _ in range(total_pixels_switched):
+                rand_x, rand_y = np.random.choice(image_hsv.shape[0]), np.random.choice(image_hsv.shape[1])
+                orig_rgb = image_rgb[rand_x, rand_y]
+                rand_value = image_hsv[rand_x, rand_y, hsv_index]
+
+                x, y = np.where((rand_value * (1 + 0.5 * buffer) >= image_hsv[:, :, hsv_index]) & (
+                        rand_value * (1 - 2 * buffer) < image_hsv[:, :, hsv_index]))
+                if len(x) == 0:
+                    continue
+                idx = np.random.choice(len(x))
+                update_rgb = image_rgb[x[idx], y[idx]]
+
+                image_rgb[x[idx], y[idx]] = orig_rgb
+                image_rgb[rand_x, rand_y] = update_rgb
+
+            if debug:
+                plt.figure()
+                plt.title(pix_frac)
+                plt.imshow(image_rgb)
+                plt.show()
+
+        if debug:
+            plt.figure()
+            plt.imshow(image_rgb)
+            plt.show()
+
+        # filtered_img = prewitt_v(color.rgb2hsv(image_rgb)[:, :, 0])
+        # filtered_img = meijering(color.rgb2hsv(image_rgb)[:, :, 0])
+        # filtered_img = sato(color.rgb2hsv(image_rgb)[:, :, 0])
+
+        # filtered_details = frangi(color.rgb2hsv(image_rgb)[:, :, 0],
+        #                       sigmas=range(3, 8, 10),
+        #                       black_ridges=True,
+        #                       beta=0.1,
+        #                       )
+
+        filtered_img = frangi(color.rgb2hsv(image_rgb)[:, :, 0],
+                              sigmas=range(3, 8, 10),
+                              black_ridges=True,
+                              # beta=0.1,
+                              )
+
+        from skimage.filters.rank import median
+        from skimage.morphology import disk, ball
+
+        filtered_img = median(filtered_img / np.max(filtered_img), disk(10))
+
+        filtered_img = filtered_img
+        filtered_img = 1.5 * (filtered_img + np.abs(np.min(filtered_img))) / np.max(
+            filtered_img + np.abs(np.min(filtered_img)))
+        filtered_img += 0.6
+
+        if debug:
+            plt.figure()
+            plt.imshow(filtered_img, cmap='gray')
+            plt.colorbar()
+            plt.show()
+
+        num_erosions = 5
+        eroded_image = hessian(color.rgb2hsv(image_rgb)[:, :, 0])
+        eroded_aug = np.zeros_like(eroded_image)
+        for n in range(num_erosions):
+            eroded_aug += 1 * eroded_image
+            eroded_image = erosion(eroded_image)
+
+        if debug:
+            plt.figure()
+            plt.imshow(image_rgb)
+            plt.show()
+
+        image_hsv = color.rgb2hsv(image_rgb)
+        image_hsv[:, :, 2] *= filtered_img
+        image_hsv[:, :, 2] *= 1 - (0.8 * eroded_aug / np.max(eroded_aug))
+        image_rgb_shadow_aug = color.hsv2rgb(image_hsv)
+        # plt.figure()
+        # plt.imshow(image_rgb_shadow_aug)
+        # plt.show()
+        axes[i].imshow(image_rgb_shadow_aug)
+    format_axes(fig)
+    gs.tight_layout(fig, pad=1.2, h_pad=0.5)
+
     plt.show()
 
 
