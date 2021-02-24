@@ -48,5 +48,53 @@ def run_1(save_fig=False):
     plt.show()
 
 
+def run_2(save_fig=False):
+    n_lines = 3
+    n_points = 800
+    x_min = -20
+    x_max = 20
+
+    hue = np.random.choice(['blue', 'purple', 'red'])
+    luminosity = None
+    rand_color = randomcolor.RandomColor()
+    background_color = np.array(rand_color.generate(hue=hue,
+                                                    luminosity=luminosity,
+                                                    format_='Array_rgb')) / 256.
+    plt.rcParams["figure.facecolor"] = background_color[0]
+    fig, axes = plt.subplots(n_lines, sharex=True, frameon=True)
+    offset = 1
+    rand_color = randomcolor.RandomColor()
+    value = 1.0
+
+    for ax in axes:
+        n_points /= 2.
+        color_rgb = np.array(rand_color.generate(hue=hue,
+                                                 luminosity=luminosity,
+                                                 format_='Array_rgb')) / 256.
+        color_rgb = color_rgb[0]
+        color_hsv = color.rgb2hsv(color_rgb)
+        color_hsv[2] *= value
+        value *= 0.9
+        color_rgb = color.hsv2rgb(color_hsv)
+
+        ax.axis('off')
+        # x = offset * np.random.uniform(-2, 2, int(n_points))
+        # x = np.random.normal(0, offset * 2, int(n_points))
+        mode = np.random.uniform(x_min, x_max)
+        x = np.random.triangular(x_min, mode, x_max, size=int(n_points))
+
+        y = 1 * np.sinc(x ** 2)
+        ax.scatter(x, y / offset, color=color_rgb, s=1.5)
+        ax.set_aspect(15)
+        offset += 3
+        ax.set_xlim(x_min, x_max)
+    fig.set_figheight(5)
+    fig.set_figwidth(8)
+
+    if save_fig:
+        plt.savefig('dotted_lines')
+    plt.show()
+
+
 if __name__ == '__main__':
     run_1()
