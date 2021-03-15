@@ -77,5 +77,59 @@ def run_2():
     plt.tight_layout()
     plt.show()
 
+
+def flower_field():
+    fig = plt.figure(constrained_layout=False, frameon=False)
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.set_facecolor((0.37, 0.37, 0.35))
+
+    n_flowers = 150
+    n_points = 100
+
+    flower_size_min = 0.075
+    flower_size_max = 0.15
+
+    rand_color = randomcolor.RandomColor()
+    axes = []
+    for flower_index in range(n_flowers):
+        size = np.random.uniform(flower_size_min, flower_size_max)
+        axes.append(fig.add_axes((np.random.uniform(-0.1, 0.9),
+                                  np.random.uniform(-0.1, 0.9),
+                                  size,
+                                  size),
+                                 projection='polar'))
+
+        hue = np.random.choice(['blue', 'yellow', 'purple', 'red'])
+        flower_background_color = np.array(
+            rand_color.generate(hue="yellow", luminosity="dark", count=1, format_='Array_rgb')) / 256.
+        flower_background_color = flower_background_color[0]
+
+        all_colors_rgb = np.array(rand_color.generate(hue=hue,
+                                                      luminosity='bright',
+                                                      count=n_points,
+                                                      format_='Array_rgb')) / 256.
+        all_colors_hsv = np.array([color.rgb2hsv(tmp_color) for tmp_color in all_colors_rgb])
+        all_colors_hsv[:, 2] *= np.linspace(0.1, 1.0, n_points)
+        all_colors_rgb = color.hsv2rgb(all_colors_hsv)
+
+        r = 1.5 * np.arange(n_points)
+        radial_freq = np.random.randint(3, 6)
+        theta = np.random.uniform(0, 360) + np.arange(n_points) * radial_freq
+        area = 0.008 * r ** 1.8 * (size / flower_size_max)
+
+        axes[-1].set_facecolor(flower_background_color)
+        axes[-1].set_thetagrids([])
+        # axes[-1].set_thetagrids([270], labels='l', fontsize=40, color=stem_color[0])
+        axes[-1].set_rgrids([])
+        axes[-1].set_frame_on(False)
+        fillstyle = np.random.choice(['full', 'left', 'right', 'bottom', 'top', 'none'])
+        marker = MarkerStyle(marker='o',
+                             fillstyle=fillstyle
+                             )
+        axes[-1].scatter(theta, r, c=all_colors_rgb, s=area, cmap='hsv', alpha=0.95, marker=marker)
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == '__main__':
-    run_2()
+    flower_field()
