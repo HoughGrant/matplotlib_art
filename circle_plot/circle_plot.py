@@ -83,16 +83,18 @@ def flower_field():
     ax = fig.add_axes([0, 0, 1, 1])
     ax.set_facecolor((0.37, 0.37, 0.35))
 
-    n_flowers = 150
+    n_flowers = 500
     n_points = 100
 
     flower_size_min = 0.075
     flower_size_max = 0.15
 
+    max_exponent = 2.2
+    min_exponent = 1.5
+
     rand_color = randomcolor.RandomColor()
     axes = []
 
-    exponent = 2.5
     for flower_index in range(n_flowers):
         size = np.random.uniform(flower_size_min, flower_size_max)
         axes.append(fig.add_axes((np.random.uniform(-0.1, 0.9),
@@ -117,15 +119,15 @@ def flower_field():
         r = 1.5 * np.arange(n_points)
         radial_freq = np.random.randint(3, 6)
         theta = np.random.uniform(0, 360) + np.arange(n_points) * radial_freq
+        max_exponent *= 0.9
+        max_exponent = np.max([min_exponent, max_exponent])
 
-        # exponent = np.random.uniform(1.5, 2.2)
-        exponent *= 0.95
 
+        exponent = np.random.uniform(min_exponent, max_exponent)
         area = 0.008 * r ** exponent * (size / flower_size_max)
 
         axes[-1].set_facecolor(flower_background_color)
         axes[-1].set_thetagrids([])
-        # axes[-1].set_thetagrids([270], labels='l', fontsize=40, color=stem_color[0])
         axes[-1].set_rgrids([])
         axes[-1].set_frame_on(False)
         fillstyle = np.random.choice(['full', 'left', 'right', 'bottom', 'top', 'none'])
