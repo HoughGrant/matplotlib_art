@@ -81,13 +81,13 @@ def run_2():
 def flower_field():
     fig = plt.figure(constrained_layout=False, frameon=False)
     ax = fig.add_axes([0, 0, 1, 1])
-    ax.set_facecolor((0.37, 0.37, 0.35))
+    ax.set_facecolor((0.1, 0.2, 0.15))
 
-    n_flowers = 500
-    n_points = 100
+    n_flowers = 200
+    n_points = 5000
 
     flower_size_min = 0.075
-    flower_size_max = 0.15
+    flower_size_max = 0.55
 
     max_exponent = 2.2
     min_exponent = 1.5
@@ -95,25 +95,34 @@ def flower_field():
     rand_color = randomcolor.RandomColor()
     axes = []
 
+    secret_hue = np.random.choice(['blue', 'yellow', 'purple', 'red'])
+
     for flower_index in range(n_flowers):
         size = np.random.uniform(flower_size_min, flower_size_max)
-        axes.append(fig.add_axes((np.random.uniform(-0.1, 0.9),
-                                  np.random.uniform(-0.1, 0.9),
+        axes.append(fig.add_axes((np.random.uniform(-0.5, 1.0),
+                                  np.random.uniform(-0.5, 1.0),
                                   size,
                                   size),
                                  projection='polar'))
 
-        hue = np.random.choice(['blue', 'yellow', 'purple', 'red'])
         flower_background_color = np.array(
             rand_color.generate(hue="yellow", luminosity="dark", count=1, format_='Array_rgb')) / 256.
         flower_background_color = flower_background_color[0]
 
+        hue = 'green'
+        luminosity = 'dark'
+        # if np.random.uniform(0, 1) < 0.01:
+        #     hue = secret_hue
+        #     luminosity = 'bright'
+
         all_colors_rgb = np.array(rand_color.generate(hue=hue,
-                                                      luminosity='bright',
+                                                      luminosity=luminosity,
                                                       count=n_points,
                                                       format_='Array_rgb')) / 256.
         all_colors_hsv = np.array([color.rgb2hsv(tmp_color) for tmp_color in all_colors_rgb])
-        all_colors_hsv[:, 2] *= np.linspace(0.1, 1.0, n_points)
+        all_colors_hsv[:, 1] *= np.random.uniform(0.15, 0.3, n_points)
+        # all_colors_hsv[:, 2] *= np.random.uniform(0.15, 0.4, n_points)
+        # all_colors_hsv[:, 2] *= np.random.uniform(0.5, 0.95, n_points)
         all_colors_rgb = color.hsv2rgb(all_colors_hsv)
 
         r = 1.5 * np.arange(n_points)
@@ -135,9 +144,55 @@ def flower_field():
                              fillstyle=fillstyle
                              )
         axes[-1].scatter(theta, r, c=all_colors_rgb, s=area, cmap='hsv', alpha=0.95, marker=marker)
+
+    flower_size_min = 0.075
+    flower_size_max = 1.5
+    n_flowers = 2
+
+    hue = np.random.choice(['blue', 'yellow', 'purple', 'red'])
+
+    for n in range(n_flowers):
+        size = 2.5
+        axes.append(fig.add_axes(((1 - size) / 2,
+                                  (1 - size) / 2,
+                                  size,
+                                  size),
+                                 projection='polar'))
+
+        flower_background_color = np.array(
+            rand_color.generate(hue="yellow", luminosity="dark", count=1, format_='Array_rgb')) / 256.
+        flower_background_color = flower_background_color[0]
+
+        all_colors_rgb = np.array(rand_color.generate(hue=hue,
+                                                      luminosity='bright',
+                                                      count=n_points,
+                                                      format_='Array_rgb')) / 256.
+        all_colors_hsv = np.array([color.rgb2hsv(tmp_color) for tmp_color in all_colors_rgb])
+        all_colors_hsv[:, 1] *= np.linspace(1.0, 0.3, n_points)
+        all_colors_rgb = color.hsv2rgb(all_colors_hsv)
+
+        r = 1.5 * np.arange(n_points)
+        radial_freq = np.random.randint(3, 6)
+        theta = np.random.uniform(0, 360) + np.arange(n_points) * radial_freq
+        max_exponent *= 0.9
+        max_exponent = np.max([min_exponent, max_exponent])
+
+
+        exponent = np.random.uniform(min_exponent, max_exponent)
+        area = 0.008 * r ** exponent * (size / flower_size_max)
+
+        axes[-1].set_facecolor(flower_background_color)
+        axes[-1].set_thetagrids([])
+        axes[-1].set_rgrids([])
+        axes[-1].set_frame_on(False)
+        fillstyle = np.random.choice(['left', 'right', 'bottom', 'top'])
+        marker = MarkerStyle(marker='o',
+                             fillstyle=fillstyle
+                             )
+        alpha = np.random.uniform(0.7, 0.95)
+        axes[-1].scatter(theta, r, c=all_colors_rgb, s=area, cmap='hsv', alpha=alpha, marker=marker)
     plt.tight_layout()
     plt.show()
-
 
 if __name__ == '__main__':
     flower_field()
