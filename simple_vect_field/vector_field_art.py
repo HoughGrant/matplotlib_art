@@ -5,18 +5,20 @@ import matplotlib.pyplot as plt
 mlp = load('vector_field_classifier.joblib')
 
 
-def run_1(cmap: str, background_rgb: tuple, rand_coeff_range: tuple, rand_coeff_samples: int = 1, plot_matrx=True,
-          plot_many_series_n=0, plot_series_title='test', antialiased=True, contour_levels=500):
+def run_1(cmap: str, background_rgb: tuple, rand_coeff_range: tuple, linspace_range: tuple = (-5, 5),
+          rand_coeff_samples: int = 1, plot_matrx=True, plot_many_series_n=0, plot_series_title='test',
+          antialiased=True, contour_levels=500):
     def make_random_contours():
         output_contours = []
         rand_locs = np.random.choice(np.arange(8), 2, replace=False)
-        for x in np.linspace(-5, 5, 100):
+        for x in np.linspace(*linspace_range, 50):
             contour_line = []
-            for y in np.linspace(-5, 5, 100):
+            for y in np.linspace(*linspace_range, 50):
                 coeffs = np.array([0, 0, 0, 0, 0, 0, 0, 0]) + np.random.uniform(*rand_coeff_range, rand_coeff_samples)
                 coeffs[rand_locs[0]] = x
                 coeffs[rand_locs[1]] = y
                 z = mlp.predict_proba([coeffs])
+                # z = mlp.predict_log_proba([coeffs])
                 contour_line.append(z[0, 1])
             output_contours.append(contour_line)
         output_contours = np.array(output_contours)
@@ -52,6 +54,16 @@ if __name__ == '__main__':
     #       plot_series_title='hot_500levels_antialiasedtrue', plot_many_series_n=5, antialiased=True)
     # run_1(cmap='tab20c', background_rgb=(49/256, 4/256, 6/256), rand_coeff_range=(-1, 1), plot_matrx=False,
     #       plot_series_title='tab20c_antialiased', plot_many_series_n=5, antialiased=True)
-    run_1(cmap='Set1', background_rgb=(49/256, 4/256, 6/256), rand_coeff_range=(-1, 1), plot_matrx=False,
-          plot_series_title='set1_notantialiased', plot_many_series_n=5, antialiased=False)
-    # run_2()
+    # run_1(cmap='Set1', background_rgb=(49/256, 4/256, 6/256), rand_coeff_range=(-1, 1), plot_matrx=False,
+    #       plot_series_title='set1_notantialiased', plot_many_series_n=5, antialiased=False)
+    # run_1(cmap='tab20c', background_rgb=(49/256, 4/256, 6/256), rand_coeff_range=(-20, 20), plot_matrx=False,
+    #       plot_series_title='tab20c_test', plot_many_series_n=5, antialiased=True)
+    # run_1(cmap='tab20', background_rgb=(49/256, 4/256, 6/256), rand_coeff_range=(-3, 1), linspace_range=(0, 10),
+    #       rand_coeff_samples=1, plot_matrx=False, plot_series_title='tab20_test4_1000_aliased', plot_many_series_n=5,
+    #       antialiased=True, contour_levels=1000)
+    # run_1(cmap='twilight_shifted', background_rgb=(49/256, 4/256, 6/256), rand_coeff_range=(-5, 5),
+    #       linspace_range=(-15, 15), rand_coeff_samples=1, plot_matrx=False, plot_series_title='twightlight_test_false_10_30',
+    #       plot_many_series_n=5, antialiased=False, contour_levels=100)
+    run_1(cmap='nipy_spectral', background_rgb=(49/256, 4/256, 6/256), rand_coeff_range=(-5, 5),
+          linspace_range=(-15, 15), rand_coeff_samples=1, plot_matrx=False, plot_series_title='ocean_test',
+          plot_many_series_n=5, antialiased=False, contour_levels=50)
